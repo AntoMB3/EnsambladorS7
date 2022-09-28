@@ -1,4 +1,4 @@
-;Inicializamos la plantilla reducida
+s;Inicializamos la plantilla reducida
 .MODEL SMALL                        
 
 ;Esto es una pila :), defaul 25 pesos de tortilla
@@ -18,7 +18,7 @@ inicio:
        MOV DS, AX
        
        ;My code
-          
+      
        ;Terminador de programa
        MOV AH, 4Ch ;Llama al sercivio 09h de
        INT 21h     ;la interrupcion del programa

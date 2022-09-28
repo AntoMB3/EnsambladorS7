@@ -67,7 +67,7 @@ inicio:
      
     Integers:        
         CMP DI,CX
-        JA seAcabo2
+        JA seAcabo
         
         ;Checa si es un punto
         CMP BUF[DI],46
