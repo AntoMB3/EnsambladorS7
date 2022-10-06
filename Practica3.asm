@@ -10,23 +10,19 @@
 .DATA
 
 BUF DB 10, ?, 10 DUP(?)  
-
-entero DW 0
-decimal DW 0
- 
+integer DW 0
+float DW 0 
 sign DB 0
-
-posinicial DW ?
-posfinal DW ?
-potencia DW ?
-
+intExponent DW ?
+floatExponent DW ?
 mult DW 10
-contador DW 0
-maxpotencia DW 1
+counter DB 0
 divi DW 10
-salto DB 0               
-error DB 0
 msg DB "Escribe un numero: $"
+pointFlag DB 0 
+pointPosition DB ?
+initialPosition DB 2
+
 
 ;Declaraciones (variables, constantes, etc)
 .CODE 
@@ -36,155 +32,184 @@ inicio:
 
     MOV AX, @DATA
     MOV DS, AX
-    
-    getNum:
+    GetNum:
+        ;Muestra el mensaje
+        XOR DI, DI
+        MOV pointFlag, 0h
+        MOV initialPosition,2h
+        MOV sign, 0h
         MOV AH,09h
         MOV DX,Offset msg
+        MOV DX, Offset 10h
         INT 21h
-        
+        ;Pide una entrada de teclado 
         MOV AH,0Ah
         XOR CX,CX
-        MOV DX, Offset BUF
-        
+        MOV DX, Offset BUF        
         INT 21h
+        ;El primer espacio del vector guarda el tamanio, el segundo guarda cuantos caracteres tecleados
+        ;Guardamos en CL la cantidad de caracteres tecleados
         INC DI
         MOV CL,BUF[DI]
         ADD CL, 1
-        INC DI
-        
-        ;Obtener el signo
+        ;Comenzamos con el primer caracter
+        INC DI ;DI = 2 (Primer caracter)       
+        ;Comprobar el si es el caracter '-'
         CMP BUF[DI],45
-        JE Minus
+        JE IfIsMinus
+        ;Comprobar el si es el caracter '+'
         CMP BUF[DI], 2Bh
-        JE Plus
-        XOR AX, AX
-        MOV AL,BUF[DI]
-        SUB AL, 30h
+        JE IfIsPlus
+        JMP ReadString
         
-        CMP AL, 0h
-        JAE a 
 
-     
-    Integers:        
-        CMP DI,CX
-        JA seAcabo
-        
-        ;Checa si es un punto
-        CMP BUF[DI],46
-        JE rellenarDecimal
-        
-        SUB BUF[DI], 30h
-        INC DI
-        JMP Integers
-    
-    Minus:
+    IfIsMinus:
         MOV sign,1
         INC DI
-        MOV posinicial,DI
-        JMP Integers  
+        INC initialPosition
+        JMP ReadString  
     
-    Plus:
+    IfIsPlus:
         MOV sign, 0
         INC DI
-        MOV posinicial,DI
-        JMP Integers
-     
-    rellenarDecimal:
-        MOV posfinal, DI
+        INC initialPosition
+        JMP ReadString
     
-        MOV AX,posfinal
-        SUB AX,posinicial
-        MOV potencia,AX
-        
-        MOV DI,posinicial
-        JMP generarpotencia
-                   
-    generarpotencia:
-        MOV AX,contador
-        MOV BX,potencia
-        SUB BX,1 
-        
-        CMP AX,BX
-        JAE ELEGIRSALTO
+    ReadString:
+        ;La etiqueta se repite hasta que se haya comprobado todo la cadena
+        CMP DI, CX
+        JA PointFix
+        ;Comprobar si el caracter actual es un punto 
+        CMP BUF[DI],46
+        JE PointTrigger
+        ;Convertimos de ASCII a valor numerico y validamos que verdaderamente sea un numero
+        SUB BUF[DI], 30h
+        JMP IsNum?
     
-        MOV AX,maxpotencia
-        MUL mult
-        ADD contador,1
-        MOV maxpotencia,AX
-        JMP generarpotencia
-        
-    ELEGIRSALTO:
-        CMP salto,0
-        JE convertirnumero
-        
-        CMP salto,1
-        JE rellenardecimales
-    
-    convertirnumero:
-        XOR AX,AX
-        MOV AL, BUF[DI]
-        MUL maxpotencia
-        ADD entero,AX
-        INC DI 
-        
-        MOV Ax,maxpotencia
-        DIV divi
-        MOV maxpotencia, AX
-        
-        CMP DI,posfinal
-        JA decimales
-        
-        JMP convertirnumero
-        
-    decimales:
+    PointTrigger:
+        ;Validamos que no haya mas de un punto
+        CMP pointFlag, 0h
+        JA GetNum
+        ;Incrementamos la pointFlag en uno 
+        INC pointFlag
+        ;Guardamos la posicion del punto
+        XOR BX, BX
+        MOV BX, DI
+        MOV pointPosition, BL
+        XOR BX, BX
+        ;Pasamos a leer el siguiente caracter
         INC DI
-        MOV AX,posfinal
-        MOV posinicial, AX
-        MOV posfinal, CX
-        MOV contador,0
-        MOV maxpotencia,1
-        
-        MOV AX,posfinal
-        SUB AX,posinicial
-        MOV potencia,AX
-        MOV salto,1
-        MOV DI,posinicial
-        
-        JMP generarpotencia
-        
-        
-     rellenardecimales:
-        INC DI
-        XOR AX,AX
-        SUB BUF[DI],30h
+        JMP ReadString  
+    
+    IsNum?:
+        XOR AX, AX
         MOV AL, BUF[DI]
-        MUL maxpotencia
-        ADD decimal,AX
-         
-        
-        MOV Ax,maxpotencia
-        DIV divi
-        MOV maxpotencia, AX
-        
-        CMP DI,posfinal
-        JA seAcabo
-        
-        JMP rellenardecimales
-    a:
+        ;Validamos que el valor convertido este entre [0,9]   
+        CMP AL, 0h
+        JB GetNum 
         CMP AL, 9h
-        JBE b
-        MOV error,1
-        JMP getNum
-    b:
-        MOV sign, 0
-        MOV posinicial,DI
-        JMP integers         
+        JA GetNum
+        ;Pasamos a leer el siguiente caracter
+        INC DI
+        JMP ReadString
+    
+    PointFix:
+        CMP pointFlag, 0
+        JA CreateExponents
+        MOV pointPosition, CL
+        INC pointPosition
+    
+    CreateExponents:
+        XOR AX,AX
+        MOV AL,pointPosition
+        SUB AL,initialPosition
+        MOV intExponent,AX
+        SUB intExponent, 1h
+        CMP pointFlag,0
+        JE Auxiliar2
+        XOR AX, AX
+        MOV AL, CL
+        SUB AL, pointPosition
+        MOV floatExponent, AX
+        SUB floatExponent, 1h
         
+    Auxiliar2:
+        XOR BX, BX
+        MOV BX,intExponent
+        MOV intExponent, 1
+    
+    PowerInt:
+        XOR AX, AX
+        MOV AL,counter
+        CMP AX,BX
+        JAE Auxiliar
+        MOV AX, intExponent
+        MUL mult
+        INC counter
+        MOV intExponent,AX
+        JMP PowerInt
+    
+    Auxiliar:
+        XOR BX, BX
+        MOV BX, floatExponent
+        MOV floatExponent, 1
+        MOV counter, 0
+        CMP pointFlag, 0
+        JE ResetDI
+    
+    PowerFloat:
+        XOR AX, AX
+        MOV AL,counter
+        CMP AX,BX
+        JAE ResetDI
+        MOV AX, floatExponent
+        MUL mult
+        INC counter
+        MOV floatExponent,AX
+        JMP PowerFloat     
         
+    ResetDI:
+        XOR AX, AX
+        MOV AL, initialPosition
+        MOV DI, AX
     
     
-        
-    seAcabo:
+    ChooseCase:
+        XOR BX, BX
+        MOV BX, DI 
+        CMP BL, CL
+        JA  EndCase
+        CMP BL, pointPosition
+        JB  IntegerCase
+        JA  FloatCase
+        INC DI
+        JMP ChooseCase
+    
+    IntegerCase:
+        XOR AX,AX
+        XOR DX, DX
+        MOV AL, BUF[DI]
+        MUL intExponent
+        ADD integer,AX
+        INC DI 
+        MOV AX,intExponent
+        DIV divi
+        MOV intExponent, AX
+        JMP ChooseCase
+            
+    FloatCase:
+        XOR AX,AX
+        XOR DX, DX
+        MOV AL, BUF[DI]
+        MUL floatExponent
+        ADD float,AX
+        INC DI 
+        MOV AX,floatExponent
+        DIV divi
+        MOV floatExponent, AX
+        JMP ChooseCase
+    
+    EndCase:
 
     ;Terminador de programa
     MOV AH,4CH ;Llama al servicio 09h
