@@ -24,7 +24,7 @@ DIAe DB ?
 MES DB 3 DUP(?)
 DIA DB 3 DUP(?)
 NUMDIA DB ?
-Menu DB "Escoje una opcion", 0AH, 0DH, "1: Ver la hora", 0AH, 0DH,"2: Ver la fecha", 0AH, 0DH,"Cualquier otra tecla para salir", 0AH, 0DH,"$"
+Menu DB 0AH, 0DH,"Escoje una opcion", 0AH, 0DH, "1: Ver la hora", 0AH, 0DH,"2: Ver la fecha", 0AH, 0DH,"Cualquier otra tecla para salir", 0AH, 0DH,"$"
 LUNES DB "Lunes$"
 MARTES DB "Martes$"
 MIERCOLES DB "Miercoles$"
@@ -54,7 +54,10 @@ DICIEMBRE DB "Diciembre$"
 inicio:
 
        MOV AX, @DATA
-       MOV DS, AX
+       MOV DS, AX 
+       
+      Clean:
+       XOR DI,DI
        
        ;My code
        MOV AH,09h
@@ -317,7 +320,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpFebrero:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -328,7 +331,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpMarzo:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -339,7 +342,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpAbril:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -350,7 +353,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpMayo:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -361,7 +364,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpJunio:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -372,7 +375,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpJulio:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -383,7 +386,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpAgosto:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -394,7 +397,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
             
          ImpSeptiembre:
             MOV DX, Offset MSG
@@ -406,7 +409,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpOctubre:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -417,7 +420,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpNoviembre:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -428,7 +431,7 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir
+            JMP Clean
          ImpDiciembre:
             MOV DX, Offset MSG
             MOV AH,09h
@@ -439,14 +442,15 @@ inicio:
             INT 21h
             MOV DX, Offset ANIO
             INT 21h
-            JMP Salir      
+            JMP Clean      
           
          ImprimirHora:    
             MOV DX, Offset HORARIO
             MOV AH,09h
             INT 21h 
             MOV DX, Offset MSG2
-            INT 21h   
+            INT 21h
+            JMP Clean 
          
          
          SALIR:
