@@ -140,7 +140,7 @@ lado1B:
     JMP lado1B
 lado2B:
     CMP cx,25h
-    JAE lado3B
+    JBE lado3B
     INC dx
     DEC cx
     INT 10h
