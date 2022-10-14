@@ -18,6 +18,7 @@ inicio:
        MOV DS, AX
        
        ;My code
+       ;practica 5
       
        ;Terminador de programa
        MOV AH, 4Ch ;Llama al sercivio 09h de
