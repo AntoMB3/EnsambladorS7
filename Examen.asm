@@ -1,4 +1,4 @@
-;Inicializamos la plantilla reducida
+    ;Inicializamos la plantilla reducida
 .MODEL SMALL                        
 
 ;Esto es una pila :), defaul 25 pesos de tortilla
@@ -67,6 +67,8 @@ inicio:
        
         Aux:
             INC DI
+            CMP STRINGNUMS[DI], 2Ch
+            JE Input
             MOV Count, 0h
             JMP Verificacion
             
@@ -185,7 +187,7 @@ inicio:
             CMP AL, 0h
             JE PDigit
             MOV Count, AL
-            MOV AL,BL
+            MOV BL,AH
             MOV AH, 02h
             MOV DL, Count
             ADD DX,30h
